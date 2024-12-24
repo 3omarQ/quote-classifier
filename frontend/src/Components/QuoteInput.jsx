@@ -12,26 +12,26 @@ function QuoteInput({ onQuoteSubmit, isProcessing }) {
     }
   };
   return (
-    <div className='p-4 m-4 bg-white border border-gray-200 rounded-lg shadow sm:p-8 '>
+    <div className='p-4 m-4 bg-white border border-gray-200 shadow-md p-8 '>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
-          <label htmlFor="quote" className="">
-            Enter your quote
+          <label htmlFor="quote" className="text-lg">
+            Enter your quote (in arabic)
           </label>
-          <input
+          <textarea
             id="quote"
-            placeholder="Type your quote here..."
+            placeholder="Arabic quote.."
             value={quote}
             onChange={(e) => setQuote(e.target.value)}
-            className="block w-full p-4 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-base focus:ring-blue-500 focus:border-blue-500"
+            className="w-full p-4 text-gray-900 border border-gray-300  bg-gray-50 text-lg"
           />
         </div>
         <button 
           type="submit" 
-          className="w-full text-white bg-gray-800 disabled:bg-gray-400 hover:bg-gray-900 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2"
+          className="w-full text-white bg-gray-800 disabled:bg-gray-400 hover:bg-gray-900 focus:outline-none focus:ring-4 focus:ring-gray-300 font-black text-md px-5 py-2.5 me-2 mb-2"
           disabled={isProcessing || !quote.trim()}
         >
-          {isProcessing ? "Processing..." : "Analyze Quote"}
+          {isProcessing ? "Processing..." : "Predict"}
         </button>
       </form>
     </div>
