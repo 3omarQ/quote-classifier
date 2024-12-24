@@ -9,46 +9,53 @@ import 'react-toastify/dist/ReactToastify.css';
 
 
 function App() {
-
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingSteps, setProcessingSteps] = useState([
     { label: "Cleaned Quote", text: "" },
     { label: "Without Stopwords", text: "" },
     { label: "Normalized", text: "" },
   ]);
-  const [classificationResults, setClassificationResults] = useState([
-    { class: "Technology", probability: 0 },
-    { class: "Science", probability: 0 },
-    { class: "Philosophy", probability: 0 },
-    { class: "Art", probability: 0 },
-  ]);
+  const [classificationResults, setClassificationResults] = useState([]);
 
   const handleQuoteSubmit = async (quote) => {
     setIsProcessing(true);
     try {
-      // Here you would make the actual API calls to your Python backend
-      // For now, we'll simulate the processing with a timeout
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Simulate processing steps
+      const response = await fetch("http://127.0.0.1:5000/predict", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ quote }),
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to fetch data from the backend");
+      }
+  
+      const data = await response.json();
+
+      console.log(data)
+  
       setProcessingSteps([
-        { label: "Cleaned Quote", text: quote.toLowerCase() },
-        { label: "Without Stopwords", text: quote.split(" ").filter(word => word.length > 3).join(" ") },
-        { label: "Lemmatized", text: quote.split(" ").map(word => word.replace(/ing$/, "")).join(" ") },
+        { label: "Cleaned Quote", text: data.cleaned_quote || "N/A" },
+        { label: "Without Stopwords", text: data.without_stopwords || "N/A" },
+        { label: "Normalized", text: data.normalized || "N/A" },
       ]);
-      // Simulate classification results
-      setClassificationResults([
-        { class: "Technology", probability: Math.random() },
-        { class: "Science", probability: Math.random() },
-        { class: "Philosophy", probability: Math.random() },
-        { class: "Art", probability: Math.random() },
-      ]);
+  
+      setClassificationResults(
+        data.all_probabilities.map((item) => ({
+          category: item.category,
+          probability: item.probability,
+        }))
+      );
     } catch (error) {
-      toast.error(error);
+      console.error("Error submitting the quote:", error);
+      toast.error("Error processing the quote. Please try again.");
     } finally {
       setIsProcessing(false);
     }
   };
+  
   return (
     <div className="flex h-screen items-center">
       <div className='flex-col h-screen w-1/2 bg-gray-50 '>

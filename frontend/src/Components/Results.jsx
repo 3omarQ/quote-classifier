@@ -9,13 +9,13 @@ function Results({ results }) {
         {results.map((result, index) => (
           <div key={index} className="space-y-2 fade-in">
             <div className="flex justify-between text-sm">
-              <span className="font-medium">{result.class}</span>
+              <span className="font-medium">{result.category}</span>
               <span className="text-muted-foreground">
                 {(result.probability * 100).toFixed(1)}%
               </span>
             </div>
-            <div class="w-full bg-gray-200 rounded-full h-2.5 mb-4 dark:bg-gray-700">
-            <div class="bg-gray-600 h-2.5 rounded-full dark:bg-gray-300" style={{ width: `${result.probability*100}%` }}></div>
+            <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4 dark:bg-gray-700">
+            <div className="bg-gray-600 h-2.5 rounded-full dark:bg-gray-300" style={{ width: `${result.probability*100}%` }}></div>
             </div>
           </div>
         ))}
