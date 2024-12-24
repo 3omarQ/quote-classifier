@@ -1,39 +1,98 @@
-from flask import Flask
 from markupsafe import escape
-from flask import url_for
+from flask import Flask, request, jsonify
+import re
+import qalsadi.lemmatizer
+import arabicstopwords.arabicstopwords as stp
+import joblib
+import numpy as np
+from tensorflow.keras.models import load_model
+from flask import Flask, request, jsonify
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.preprocessing import LabelEncoder
+from tensorflow.keras.utils import to_categorical
+from flask_cors import CORS
+import math
+
+
+
+def clean_quote(quote:str):
+    quote=quote.strip().replace('  ',' ')
+    return re.sub(r'[^ء-يa-zA-Z\s]', '', quote)
+
+def remove_stopwords(quote:str):
+    return ' '.join([word for word in quote.split() if word not in (stp.STOPWORDS)])
+
+def lemmatize_text(quote:str ):
+    lemmer = qalsadi.lemmatizer.Lemmatizer()
+    return ' '.join(lemmer.lemmatize_text(quote))
+
+def load_pipeline(load_path='./'):
+
+    model = load_model(f'{load_path}model.keras')
+    
+    vectorizer = joblib.load(f'{load_path}vectorizer.joblib')
+    
+    label_encoder = joblib.load(f'{load_path}label_encoder.joblib')
+    
+    return model, vectorizer, label_encoder
+
+def predict_quote_category(quote, model, vectorizer, label_encoder):
+    preprocessed_quote = lemmatize_text(remove_stopwords(clean_quote(quote)))
+
+    X = vectorizer.transform([preprocessed_quote])
+    X = X.toarray()
+
+    pred_proba = model.predict(X)
+    pred_class_idx = np.argmax(pred_proba, axis=1)[0]
+
+    predicted_category = label_encoder.inverse_transform([pred_class_idx])[0]
+    confidence = float(pred_proba[0][pred_class_idx])
+
+    # Keep probabilities as floats for sorting
+    probabilities = {
+        cat: float(prob)
+        for cat, prob in zip(label_encoder.classes_, pred_proba[0])
+    }
+    sorted_probabilities = sorted(
+        probabilities.items(),
+        key=lambda x: x[1],
+        reverse=True
+    )
+
+    # Flask expects JSON-serializable types, so ensure all values are proper floats
+    formatted_probabilities = [
+        {'category': cat, 'probability': prob}
+        for cat, prob in sorted_probabilities if cat is not None and not (isinstance(cat, float) and math.isnan(cat))
+    ]
+
+    return formatted_probabilities
 
 
 app = Flask(__name__)
+CORS(app)
+model, vectorizer, label_encoder = load_pipeline()
 
-@app.route('/')
-def index():
-    return 'index'
+@app.route('/predict', methods=['POST'])
+def predict():
+    try:
+        data = request.get_json()
+        quote = str(data['quote'])
+        print(request.json)
+        cleaned_quote=clean_quote(quote)
+        without_stopwords_quote=remove_stopwords(cleaned_quote)
+        lemmatized= lemmatize_text(without_stopwords_quote)
+        probabilities = predict_quote_category(quote, model, vectorizer, label_encoder)[0:5]
 
-@app.route('/login')
-def login():
-    return 'login'
+        response={
+            "cleaned_quote":cleaned_quote,
+            "without_stopwords":without_stopwords_quote,
+            "normalized":lemmatized,
+            "all_probabilities":probabilities
+        }
+        return response
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
 
-@app.route('/user/<username>')
-def profile(username):
-    return f'{username}\'s profile'
-
-with app.test_request_context():
-    print(url_for('index'))
-    print(url_for('login'))
-    print(url_for('login', next='/'))
-    print(url_for('profile', username='John Doe'))
-
-@app.route('/login', methods=['POST', 'GET'])
-def login():
-    error = None
-    if request.method == 'POST':
-        if valid_login(request.form['username'],
-                       request.form['password']):
-            return log_the_user_in(request.form['username'])
-        else:
-            error = 'Invalid username/password'
-    # the code below is executed if the request method
-    # was GET or the credentials were invalid
-    return render_template('login.html', error=error)
 
 
