@@ -57,13 +57,13 @@ function App() {
   };
   
   return (
-    <div className="flex h-screen items-center">
-      <div className='flex-col h-screen w-1/2 bg-gray-50 '>
+    <div className="flex h-full bg-gray-50">
+      <div className='flex-col h-full w-1/2  '>
         <QuoteInput onQuoteSubmit={handleQuoteSubmit} isProcessing={isProcessing}></QuoteInput>
         <ProcessingStep steps={processingSteps}></ProcessingStep>
       </div>
 
-      <div className='flex-col h-screen w-1/2'>
+      <div className='flex-col h-full w-1/2  '>
         <Results results={classificationResults}></Results>
       </div>
     </div>
