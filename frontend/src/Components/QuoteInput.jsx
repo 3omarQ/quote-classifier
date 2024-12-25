@@ -1,18 +1,24 @@
 import React from 'react';
 import { useState } from "react";
+import { toast, ToastContainer } from 'react-toastify';
 
 
-
-function QuoteInput({ onQuoteSubmit, isProcessing }) {
+function QuoteInput({ onQuoteSubmit, isProcessing, value }) {
   const [quote, setQuote] = useState("");
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (quote.length>1500){
+      toast.error("Quote too big (max 1400 characters)");
+      return
+    }
+
     if (quote.trim()) {
       onQuoteSubmit(quote);
     }
   };
   return (
     <div className='p-4 m-4 bg-white border border-gray-200 shadow-md p-8 '>
+      <ToastContainer />
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
           <label htmlFor="quote" className="text-lg">

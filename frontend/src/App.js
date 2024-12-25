@@ -3,7 +3,7 @@ import QuoteInput from './Components/QuoteInput';
 import ProcessingStep from './Components/ProcessingStep'
 import{useState} from "react";
 import Results from './Components/Results';
-import { toast } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 
@@ -16,9 +16,52 @@ function App() {
     { label: "Normalized", text: "" },
   ]);
   const [classificationResults, setClassificationResults] = useState([]);
+  const slowSetProcessingSteps = (data) =>{
+    setTimeout(() => {
+      setProcessingSteps([
+        { label: "Cleaned Quote", text: data.cleaned_quote || "Processing.." },
+        { label: "Without Stopwords", text:  "Processing.." },
+        { label: "Normalized", text:  "Processing.." },
+      ]);
+    }, 1000);
+    setTimeout(() => {
+      setProcessingSteps([
+        { label: "Cleaned Quote", text: data.cleaned_quote || "Processing.." },
+        { label: "Without Stopwords", text: data.without_stopwords || "Processing.." },
+        { label: "Normalized", text: "Processing.." },
+      ]);
+    }, 2000);
+    setTimeout(() => {
+      setProcessingSteps([
+        { label: "Cleaned Quote", text: data.cleaned_quote || "Processing.." },
+        { label: "Without Stopwords", text: data.without_stopwords || "Processing.." },
+        { label: "Normalized", text: data.normalized || "Processing.." },
+      ]);
+    }, 3000);
+  }
+  const emptyProcessingSteps = () =>{
+    setProcessingSteps([
+      { label: "Cleaned Quote", text: "" },
+      { label: "Without Stopwords", text: "" },
+      { label: "Normalized", text: "" },
+    ])
+  }
+  
+  const emptyClassificationResults = () =>{
+    setClassificationResults([
+      {category:"", probability:""},
+      {category:"", probability:""},
+      {category:"", probability:""},
+      {category:"", probability:""},
+      {category:"", probability:""},
+    ])
+  }
 
   const handleQuoteSubmit = async (quote) => {
+    emptyProcessingSteps();
+    emptyClassificationResults();
     setIsProcessing(true);
+    
     try {
       const response = await fetch("http://127.0.0.1:5000/predict", {
         method: "POST",
@@ -36,18 +79,18 @@ function App() {
 
       console.log(data)
   
-      setProcessingSteps([
-        { label: "Cleaned Quote", text: data.cleaned_quote || "N/A" },
-        { label: "Without Stopwords", text: data.without_stopwords || "N/A" },
-        { label: "Normalized", text: data.normalized || "N/A" },
-      ]);
-  
-      setClassificationResults(
-        data.all_probabilities.map((item) => ({
-          category: item.category,
-          probability: item.probability,
-        }))
-      );
+      slowSetProcessingSteps(data)
+      
+      setTimeout(() => {
+        setClassificationResults(
+          data.all_probabilities.map((item) => ({
+            category: item.category,
+            probability: item.probability,
+          }))
+        );
+      }, 4000);
+
+      
     } catch (error) {
       console.error("Error submitting the quote:", error);
       toast.error("Error processing the quote. Please try again.");
@@ -58,6 +101,7 @@ function App() {
   
   return (
     <div className="flex h-full bg-gray-50">
+      <ToastContainer className="self-center" />
       <div className='flex-col h-full w-1/2  '>
         <QuoteInput onQuoteSubmit={handleQuoteSubmit} isProcessing={isProcessing}></QuoteInput>
         <ProcessingStep steps={processingSteps}></ProcessingStep>
