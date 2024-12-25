@@ -74,7 +74,7 @@ model, vectorizer, label_encoder = load_pipeline()
 
 @app.route('/')
 def index():
-    return FLASK BACKEND
+    return 'FLASK BACKEND'
 
 @app.route('/predict', methods=['POST'])
 def predict():
