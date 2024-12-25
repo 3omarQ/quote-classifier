@@ -49,18 +49,18 @@ function App() {
   
   const emptyClassificationResults = () =>{
     setClassificationResults([
-      {category:"", probability:""},
-      {category:"", probability:""},
-      {category:"", probability:""},
-      {category:"", probability:""},
-      {category:"", probability:""},
+      {category:"Processing..", probability:""},
+      {category:"Processing..", probability:""},
+      {category:"Processing..", probability:""},
+      {category:"Processing..", probability:""},
+      {category:"Processing..", probability:""},
     ])
   }
-
+  
   const handleQuoteSubmit = async (quote) => {
+    setIsProcessing(true);
     emptyProcessingSteps();
     emptyClassificationResults();
-    setIsProcessing(true);
     
     try {
       const response = await fetch("http://127.0.0.1:5000/predict", {
@@ -70,15 +70,15 @@ function App() {
         },
         body: JSON.stringify({ quote }),
       });
-  
+      
       if (!response.ok) {
         throw new Error("Failed to fetch data from the backend");
       }
-  
+      
       const data = await response.json();
-
+      
       console.log(data)
-  
+      
       slowSetProcessingSteps(data)
       
       setTimeout(() => {
@@ -89,18 +89,18 @@ function App() {
           }))
         );
       }, 4000);
-
+      
+      setIsProcessing(false);
       
     } catch (error) {
       console.error("Error submitting the quote:", error);
       toast.error("Error processing the quote. Please try again.");
     } finally {
-      setIsProcessing(false);
     }
   };
   
   return (
-    <div className="flex h-full bg-gray-50">
+    <div className="flex h-fit bg-gray-50 p-4">
       <ToastContainer className="self-center" />
       <div className='flex-col h-full w-1/2  '>
         <QuoteInput onQuoteSubmit={handleQuoteSubmit} isProcessing={isProcessing}></QuoteInput>

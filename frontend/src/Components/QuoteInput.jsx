@@ -17,7 +17,7 @@ function QuoteInput({ onQuoteSubmit, isProcessing, value }) {
     }
   };
   return (
-    <div className='p-4 m-4 bg-white border border-gray-200 shadow-md p-8 '>
+    <div className='p-8 m-4 bg-white border border-gray-200 shadow-md '>
       <ToastContainer />
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
