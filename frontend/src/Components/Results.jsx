@@ -14,7 +14,7 @@ function Results({ results }) {
                 {(result.probability * 100).toFixed(1)}%
               </span>
             </div>
-            <div className="w-full bg-gray-250 rounded-full h-2 mb-4 ">
+            <div className="w-full bg-gray-200 rounded-full h-2 mb-4 ">
             <div className="bg-gray-950 h-2  " style={{ width: `${result.probability*100}%` }}></div>
             </div>
           </div>
