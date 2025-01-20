@@ -15,7 +15,7 @@ function Results({ results }) {
               </span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2 mb-4 ">
-            <div className="bg-gray-600 h-2  dark:bg-gray-300" style={{ width: `${result.probability*100}%` }}></div>
+            <div className="bg-gray-950 h-2  " style={{ width: `${result.probability*100}%` }}></div>
             </div>
           </div>
         ))}
