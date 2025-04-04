@@ -16,6 +16,15 @@ function App() {
     { label: "Normalized", text: "" },
   ]);
   const [classificationResults, setClassificationResults] = useState([]);
+
+  const setAllProcessingSteps = (data) =>{
+    setProcessingSteps([
+      { label: "Cleaned Quote", text: data.cleaned_quote || "Processing.." },
+      { label: "Without Stopwords", text: data.without_stopwords || "Processing.." },
+      { label: "Normalized", text: data.normalized || "Processing.." },
+    ]);
+  }
+
   const slowSetProcessingSteps = (data) =>{
     setTimeout(() => {
       setProcessingSteps([
@@ -79,16 +88,16 @@ function App() {
       
       console.log(data)
       
-      slowSetProcessingSteps(data)
+      setAllProcessingSteps(data)
       
-      setTimeout(() => {
-        setClassificationResults(
-          data.all_probabilities.map((item) => ({
-            category: item.category,
-            probability: item.probability,
-          }))
-        );
-      }, 4000);
+      
+      setClassificationResults(
+        data.all_probabilities.map((item) => ({
+          category: item.category,
+          probability: item.probability,
+        }))
+      );
+      
       
       setIsProcessing(false);
       
