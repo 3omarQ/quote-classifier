@@ -70,6 +70,11 @@ function App() {
     setIsProcessing(true);
     emptyProcessingSteps();
     emptyClassificationResults();
+    setProcessingSteps([
+      { label: "Cleaned Quote", text: "Processing.." },
+      { label: "Without Stopwords", text: "Processing.." },
+      { label: "Normalized", text: "Processing.." },
+    ]);
     
     try {
       const response = await fetch("https://quote-classifier-coft.onrender.com/predict", {
