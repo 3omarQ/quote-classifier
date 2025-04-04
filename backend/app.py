@@ -1,15 +1,16 @@
-from markupsafe import escape
+#from markupsafe import escape
 from flask import Flask, request, jsonify
 import re
 import qalsadi.lemmatizer
 import arabicstopwords.arabicstopwords as stp
 import joblib
 import numpy as np
-from tensorflow.keras.models import load_model
+#from tensorflow.keras.models import load_model
+#from tensorflow.keras.utils import to_categorical
+import tflite_runtime.interpreter as tflite
 from flask import Flask, request, jsonify
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.preprocessing import LabelEncoder
-from tensorflow.keras.utils import to_categorical
 from flask_cors import CORS
 import math
 
@@ -27,26 +28,24 @@ def lemmatize_text(quote:str ):
     return ' '.join(lemmer.lemmatize_text(quote))
 
 def load_pipeline(load_path='./'):
+    interpreter = tflite.Interpreter(model_path=f"{load_path}model.tflite")
+    interpreter.allocate_tensors()
+    vectorizer = joblib.load(f"{load_path}vectorizer.joblib")
+    label_encoder = joblib.load(f"{load_path}label_encoder.joblib")
+    return interpreter, vectorizer, label_encoder
 
-    model = load_model(f'{load_path}model.keras')
-    
-    vectorizer = joblib.load(f'{load_path}vectorizer.joblib')
-    
-    label_encoder = joblib.load(f'{load_path}label_encoder.joblib')
-    
-    return model, vectorizer, label_encoder
-
-def predict_quote_category(quote, model, vectorizer, label_encoder):
+def predict_quote_category(quote, interpreter, vectorizer, label_encoder):
     preprocessed_quote = lemmatize_text(remove_stopwords(clean_quote(quote)))
-
-    X = vectorizer.transform([preprocessed_quote])
-    X = X.toarray()
-
-    pred_proba = model.predict(X)
-    pred_class_idx = np.argmax(pred_proba, axis=1)[0]
-
-    predicted_category = label_encoder.inverse_transform([pred_class_idx])[0]
-    confidence = float(pred_proba[0][pred_class_idx])
+    X = vectorizer.transform([preprocessed_quote]).toarray().astype(np.float32)
+    
+    # Get input/output details
+    input_details = interpreter.get_input_details()
+    output_details = interpreter.get_output_details()
+    
+    # Run inference
+    interpreter.set_tensor(input_details[0]['index'], X)
+    interpreter.invoke()
+    pred_proba = interpreter.get_tensor(output_details[0]['index'])
 
     # Keep probabilities as floats for sorting
     probabilities = {
@@ -70,7 +69,7 @@ def predict_quote_category(quote, model, vectorizer, label_encoder):
 
 app = Flask(__name__)
 CORS(app)
-model, vectorizer, label_encoder = load_pipeline()
+interpreter, vectorizer, label_encoder = load_pipeline()
 
 @app.route('/')
 def index():
@@ -85,7 +84,7 @@ def predict():
         cleaned_quote=clean_quote(quote)
         without_stopwords_quote=remove_stopwords(cleaned_quote)
         lemmatized= lemmatize_text(without_stopwords_quote)
-        probabilities = predict_quote_category(quote, model, vectorizer, label_encoder)[0:5]
+        probabilities = predict_quote_category(quote, interpreter, vectorizer, label_encoder)[0:5]
 
         response={
             "cleaned_quote":cleaned_quote,
