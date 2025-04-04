@@ -67,9 +67,15 @@ def predict():
     try:
         data = request.get_json()
         quote = str(data['quote'])
+        cleaned_quote=clean_quote(quote) if quote else ""
+        without_stopwords=remove_stopwords(cleaned_quote) if cleaned_quote else ""
+        normalized=lemmatize_text(without_stopwords) if without_stopwords else ""
         probabilities = predict_quote_category(quote, model_sess, vectorizer, label_encoder)[0:5]
         
         return jsonify({
+            "cleaned_quote":cleaned_quote,
+            "without_stopwords":without_stopwords,
+            "normalized":normalized,
             "all_probabilities": probabilities
         })
     
