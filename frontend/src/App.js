@@ -55,13 +55,16 @@ function App() {
     ]);
 
     try {
-      const response = await fetch("http://127.0.0.1:5000/predict", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        "https://quote-classifier-coft.onrender.com/predict",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ quote }),
         },
-        body: JSON.stringify({ quote }),
-      });
+      );
 
       if (!response.ok) {
         throw new Error("Failed to fetch data from the backend");
