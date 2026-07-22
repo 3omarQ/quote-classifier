@@ -1,8 +1,9 @@
 import "./App.css";
 import QuoteInput from "./Components/QuoteInput";
 import ProcessingStep from "./Components/ProcessingStep";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Results from "./Components/Results";
+import Footer from "./Components/Footer";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -14,6 +15,9 @@ function App() {
     { label: "Normalized", text: "" },
   ]);
   const [classificationResults, setClassificationResults] = useState([]);
+  const [showColdStartMsg, setShowColdStartMsg] = useState(false);
+  const processingRef = useRef(null);
+  const resultsRef = useRef(null);
 
   const setAllProcessingSteps = (data) => {
     setProcessingSteps([
@@ -44,8 +48,16 @@ function App() {
     ]);
   };
 
+  // Pre-warm the backend on page load so Render's free tier wakes up
+  useEffect(() => {
+    fetch("https://quote-classifier-coft.onrender.com/", {
+      method: "GET",
+    }).catch(() => {});
+  }, []);
+
   const handleQuoteSubmit = async (quote) => {
     setIsProcessing(true);
+    setShowColdStartMsg(false);
     emptyProcessingSteps();
     emptyClassificationResults();
     setProcessingSteps([
@@ -53,6 +65,13 @@ function App() {
       { label: "Without Stopwords", text: "Processing.." },
       { label: "Normalized", text: "Processing.." },
     ]);
+
+    processingRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+
+    const coldStartTimer = setTimeout(() => setShowColdStartMsg(true), 3000);
 
     try {
       const response = await fetch(
@@ -83,28 +102,48 @@ function App() {
         })),
       );
 
+      resultsRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+
       setIsProcessing(false);
     } catch (error) {
       console.error("Error submitting the quote:", error);
       toast.error("Error processing the quote. Please try again.");
       setIsProcessing(false);
     } finally {
+      clearTimeout(coldStartTimer);
+      setShowColdStartMsg(false);
     }
   };
 
   return (
-    <div className="flex flex-col md:flex-row h-fit bg-gray-50 p-4 gap-4">
-      <ToastContainer className="self-center" />
-      <div className="flex-col w-full md:w-1/2">
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center p-4">
+      <ToastContainer />
+      <div className="w-full max-w-5xl flex flex-col gap-8">
         <QuoteInput
           onQuoteSubmit={handleQuoteSubmit}
           isProcessing={isProcessing}
-        ></QuoteInput>
-        <ProcessingStep steps={processingSteps}></ProcessingStep>
-      </div>
+        />
 
-      <div className="flex-col w-full md:w-1/2">
-        <Results results={classificationResults}></Results>
+        {showColdStartMsg && (
+          <p className="text-sm text-gray-500 -mt-4">
+            First request can take up to 30s — this app runs on free hosting
+            that sleeps when idle. Hang tight!
+          </p>
+        )}
+
+        <div className="flex flex-col md:flex-row gap-8">
+          <div ref={processingRef} className="w-full md:w-1/2">
+            <ProcessingStep steps={processingSteps} />
+          </div>
+          <div ref={resultsRef} className="w-full md:w-1/2">
+            <Results results={classificationResults} />
+          </div>
+        </div>
+
+        <Footer />
       </div>
     </div>
   );

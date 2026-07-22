@@ -3,7 +3,7 @@ import React from 'react'
 
 function Results({ results }) {
   return (
-    <div className=' m-4 bg-white border border-gray-200  shadow-md p-8 '>
+    <div className='bg-white border border-gray-200 shadow-md p-8'>
         <h2 className="text-xl font-semibold mb-6">Classification Results (top 5 guesses)</h2>
         <div className="space-y-6">
         {results.map((result, index) => (

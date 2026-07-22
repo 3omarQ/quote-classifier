@@ -16,7 +16,7 @@ function QuoteInput({ onQuoteSubmit, isProcessing, value }) {
     }
   };
   return (
-    <div className='p-8 m-4 bg-white border border-gray-200 shadow-md '>
+    <div className='p-8 bg-white border border-gray-200 shadow-md'>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
           <label htmlFor="quote" className="text-lg">
