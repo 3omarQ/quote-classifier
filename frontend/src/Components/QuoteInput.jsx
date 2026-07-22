@@ -1,7 +1,6 @@
 import React from 'react';
 import { useState } from "react";
-import { toast, ToastContainer } from 'react-toastify';
-
+import { toast } from 'react-toastify';
 
 function QuoteInput({ onQuoteSubmit, isProcessing, value }) {
   const [quote, setQuote] = useState("");
@@ -18,13 +17,14 @@ function QuoteInput({ onQuoteSubmit, isProcessing, value }) {
   };
   return (
     <div className='p-8 m-4 bg-white border border-gray-200 shadow-md '>
-      <ToastContainer />
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
           <label htmlFor="quote" className="text-lg">
             Enter your quote (in arabic)
           </label>
           <textarea
+          dir="rtl"
+
             id="quote"
             placeholder="Arabic quote.."
             value={quote}
